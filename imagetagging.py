@@ -14,6 +14,8 @@ import datetime
 OLLAMA_BASE_URL = "http://127.0.0.1:11434"
 SOURCE_DIR = "C:/Users/Sibby/Downloads/Image_KeywordTagging/examples"
 TARGET_DIR = "C:/Users/Sibby/Downloads/Image_KeywordTagging/examples"
+SOURCE_DIR = "Z:/Photos/"
+TARGET_DIR = "Z:/Photos/"
 
 PROMPT_KEYWORDS = "Please provide precise keywords separated by commas."
 PROMPT_DESCRIPTION = "Please provide a description."
@@ -21,8 +23,11 @@ PROMPT_TITLE = "Please give the photo a title."
 
 FILE_EXTENSIONS = ['*.jpeg', '*.jpg', '*.png']
 
+
 # Custom EXIF tag for marking processed images
-CUSTOM_EXIF_TAG = "Custom:ProcessedByTaggerVision"
+CUSTOM_EXIF_TAG = "-Custom:ProcessedByTaggerVision"
+VERSION_SCRIPT = "v1.0"  # Change this to the actual version of the script
+FORCE_REPROCESS = False
 
 # Function to convert PIL image to base64 string
 def convert_to_base64(pil_image):
@@ -72,13 +77,10 @@ def process_image(image_path, prompt):
                 
             # Write the custom EXIF tag to mark the image as processed
             now = datetime.datetime.now()
-            script_version = "1.0"  # Change this to the actual version of the script
-            custom_tag_value = json.dumps({
-                "date": now.strftime("%Y-%m-%d"),
-                "script_version": script_version
-            })
+ 
+            custom_tag_value = now.strftime("%Y-%m-%d") + "_" + VERSION_SCRIPT
             with exiftool.ExifTool() as et:
-                et.execute(f"-{CUSTOM_EXIF_TAG}={custom_tag_value}", image_path)
+                et.execute(f"{CUSTOM_EXIF_TAG}={custom_tag_value}", str(xmp_path))
 
         else:
             print(f"XMP sidecar file not found for {image_path}. Skipping.")
@@ -98,19 +100,31 @@ def is_image_processed(image_path):
     # Check if the custom EXIF tag exists in the XMP sidecar file
     with exiftool.ExifToolHelper() as et:
         # Get the tags from the XMP sidecar file
-        tags = et.get_tags([str(xmp_path)], tags=['Custom:ProcessedByScript'])
+        lst_tags = ["XMP:Subject", "XMP:Description", "XMP:Title"]
+        tags = et.get_tags([str(xmp_path)], tags=lst_tags)
+
+        # Get the first (and presumably only) file's tag data
+        tag_data = tags[0] if tags else {}
         
-        # Return True if the custom tag exists, False otherwise
-        return bool(tags)
+        # Check if any of the specified fields are empty
+        for tag in lst_tags:
+            value = tag_data.get(tag)
+            if not value or not str(value).strip():
+                print(f"The field '{tag}' is empty.")
+                return False  # Return False if any field is empt
+
+        # Return True if all fields have content and not already processed
+        print(f"Already processed: '{image_path}'")
+        return True
 
 if __name__ == "__main__":
     # Iterate through files in the specified directory  
     for ext in FILE_EXTENSIONS:
         for filepath in glob.glob(SOURCE_DIR + '/**/' + ext, recursive=True):
             # Skip processing if the image is already tagged
-            if is_image_processed(filepath):
-                print(f"Skipping image '{filepath}' as it is already processed.")
-                continue
+            if not FORCE_REPROCESS:
+                if is_image_processed(filepath):
+                    continue
             
             process_image(filepath, PROMPT_TITLE)
             process_image(filepath, PROMPT_KEYWORDS)
