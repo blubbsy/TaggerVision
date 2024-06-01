@@ -12,9 +12,7 @@ import datetime
 from tqdm import tqdm
 
 # Constants for directories and prompts
-OLLAMA_BASE_URL = "http://127.0.0.1:11434"
-SOURCE_DIR = "C:/Users/Sibby/Downloads/Image_KeywordTagging/examples"
-TARGET_DIR = "C:/Users/Sibby/Downloads/Image_KeywordTagging/examples"
+OLLAMA_URL = "http://127.0.0.1:11434"
 SOURCE_DIR = "Z:/Photos/"
 TARGET_DIR = "Z:/Photos/"
 
@@ -40,9 +38,9 @@ def convert_to_base64(pil_image):
 # Function to process image with LLama model
 def process_image(image_path, prompt):
     # Connect to LLama 1.6
-    #llava_model = Ollama(model="llava:v1.6", base_url=OLLAMA_BASE_URL, temperature=0)
-    #llava_model = Ollama(model="llava-llama3", base_url=OLLAMA_BASE_URL, temperature=0)
-    llava_model = Ollama(model="llava-phi3", base_url=OLLAMA_BASE_URL, temperature=0)
+    #llava_model = Ollama(model="llava:v1.6", base_url=OLLAMA_URL, temperature=0)
+    #llava_model = Ollama(model="llava-llama3", base_url=OLLAMA_URL, temperature=0)
+    llava_model = Ollama(model="llava-phi3", base_url=OLLAMA_URL, temperature=0)
     
     try:
         # Read the image
@@ -136,3 +134,5 @@ if __name__ == "__main__":
         process_image(filepath, PROMPT_TITLE)
         process_image(filepath, PROMPT_KEYWORDS)
         process_image(filepath, PROMPT_DESCRIPTION)
+    
+    print("Finished. Yay!")
