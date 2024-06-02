@@ -22,9 +22,6 @@ PROMPT_TITLE = "Please give the photo an artistic title. Avoid naming locations 
 
 FILE_EXTENSIONS = ['*.jpeg', '*.jpg', '*.png']
 
-# Custom EXIF tag for marking processed images
-CUSTOM_EXIF_TAG = "-Custom:ProcessedByTaggerVision"
-VERSION_SCRIPT = "v1.0"  # Change this to the actual version of the script
 FORCE_REPROCESS = False
 
 # Function to convert PIL image to base64 string
