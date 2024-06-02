@@ -72,13 +72,6 @@ def process_image(image_path, prompt):
             with exiftool.ExifTool() as et:
                 et.execute(f"{tag}={response}", str(xmp_path))
                 
-            # Write the custom EXIF tag to mark the image as processed
-            now = datetime.datetime.now()
- 
-            custom_tag_value = now.strftime("%Y-%m-%d") + "_" + VERSION_SCRIPT
-            with exiftool.ExifTool() as et:
-                et.execute(f"{CUSTOM_EXIF_TAG}={custom_tag_value}", str(xmp_path))
-
         else:
             print(f"XMP sidecar file not found for {image_path}. Skipping.")
             
