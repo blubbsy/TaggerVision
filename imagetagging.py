@@ -4,7 +4,6 @@ import os
 from io import BytesIO
 from pathlib import Path
 from PIL import Image
-#from iptcinfo3 import IPTCInfo
 from langchain_community.llms import Ollama
 import exiftool
 import json
@@ -13,16 +12,18 @@ from tqdm import tqdm
 
 # Constants for directories and prompts
 OLLAMA_URL = "http://127.0.0.1:11434"
-SOURCE_DIR = "Z:/Photos/"
-TARGET_DIR = "Z:/Photos/"
+#SOURCE_DIR = "Z:/Photos/"
+#TARGET_DIR = "Z:/Photos/"
+SOURCE_DIR = "C:/Users/Sibby/Downloads/Image_KeywordTagging/examples"
+TARGET_DIR = "C:/Users/Sibby/Downloads/Image_KeywordTagging/examples"
 
-PROMPT_KEYWORDS = "Please provide a minimum of 10 precise keywords separated by commas."
-PROMPT_DESCRIPTION = "Please provide a description of what is on the photo. Avoid repetitive sentences and words."
-PROMPT_TITLE = "Please give the photo an artistic title. Avoid naming locations or people."
+PROMPT_TITLE = "Give the photo a title. Avoid naming locations or people."
+PROMPT_DESCRIPTION = "Provide a description of what is on the photo. Avoid repetitive sentences and words."
+PROMPT_KEYWORDS = "Provide a minimum of 10 precise keywords separated by commas."
 
 FILE_EXTENSIONS = ['*.jpeg', '*.jpg', '*.png']
 
-FORCE_REPROCESS = False
+FORCE_REPROCESS = True
 
 # Function to convert PIL image to base64 string
 def convert_to_base64(pil_image):
@@ -35,14 +36,14 @@ def convert_to_base64(pil_image):
 # Function to process image with LLama model
 def process_image(image_path, prompt):
     # Connect to LLama 1.6
-    #llava_model = Ollama(model="llava:v1.6", base_url=OLLAMA_URL, temperature=0)
-    #llava_model = Ollama(model="llava-llama3", base_url=OLLAMA_URL, temperature=0)
-    llava_model = Ollama(model="llava-phi3", base_url=OLLAMA_URL, temperature=0)
+    #mymodel = Ollama(model="llava:v1.6", base_url=OLLAMA_URL, temperature=0)
+    #mymodel = Ollama(model="llava-llama3", base_url=OLLAMA_URL, temperature=0)
+    mymodel = Ollama(model="x/llama3.2-vision", base_url=OLLAMA_URL, temperature=0)
+    #mymodel = Ollama(model="llava-phi3", base_url=OLLAMA_URL, temperature=0)
     
     try:
         # Read the image
         print(f"Processing image '{image_path}'...")
-        #info = IPTCInfo(image_path, force=True, inp_charset='utf8')
         pil_image = Image.open(image_path)
 
         # Resize the image to a width of 672 pixels
@@ -53,7 +54,7 @@ def process_image(image_path, prompt):
 
         # Convert image to base64 and pass it to the model along with the prompt
         image_b64 = convert_to_base64(pil_image)
-        llm_with_image_context = llava_model.bind(images=[image_b64])
+        llm_with_image_context = mymodel.bind(images=[image_b64])
         response = llm_with_image_context.invoke(prompt)
 
         # Print LLama:v1.6 response
@@ -85,7 +86,7 @@ def is_image_processed(image_path):
     # Check if the XMP sidecar file exists
     if not xmp_path.exists():
         print(f"XMP sidecar file '{xmp_path}' not found.")
-        return True
+        return False
     
     # Check if the custom EXIF tag exists in the XMP sidecar file
     with exiftool.ExifToolHelper() as et:
@@ -122,7 +123,7 @@ if __name__ == "__main__":
                 continue
 
         process_image(filepath, PROMPT_TITLE)
-        process_image(filepath, PROMPT_KEYWORDS)
         process_image(filepath, PROMPT_DESCRIPTION)
+        process_image(filepath, PROMPT_KEYWORDS)
     
     print("Finished. Yay!")
